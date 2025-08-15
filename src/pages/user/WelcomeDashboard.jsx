@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "./contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../../components/Sidebar";
+import { apiService } from "../../services/apiService";
 import { 
   FaChartLine, FaServer, FaSearch, FaCloud, FaFileAlt, 
   FaRocket, FaSignOutAlt
@@ -25,9 +27,12 @@ const WelcomeDashboard = () => {
   const getQuickActions = () => {
     const baseActions = [
       { title: 'Upload Recordings', icon: FaCloud, path: '/upload-media', color: 'blue' },
-      { title: 'User Stories', icon: FaFileAlt, path: '/generate-user-stories', color: 'green' }
+      { title: 'User Stories', icon: FaFileAlt, path: '/generate-user-stories', color: 'green' },
+      { title: 'MCP Prompt', icon: FaRocket, path: '/mcp-prompt', color: 'purple' },
+      { title: 'MCP Data Source', icon: FaServer, path: '/mcp-data-source', color: 'indigo' }
     ];
 
+    // Always show MCP Prompt for all roles
     if (user?.role === 'admin') {
       return [
         ...baseActions,
@@ -61,7 +66,14 @@ const WelcomeDashboard = () => {
         'rca': '/generate-rca-report',
         'report': '/generate-rca-report',
         'admin': '/admin',
-        'dashboard': '/dashboard'
+        'dashboard': '/dashboard',
+        'mcp prompt': '/mcp-prompt',
+        'prompt': '/mcp-prompt',
+        'mcp': '/mcp-prompt',
+        'mcp data source': '/mcp-data-source',
+        'data source': '/mcp-data-source',
+        'data stores': '/mcp-data-source',
+        'stores': '/mcp-data-source'
       };
       
       const route = searchRoutes[searchTerm.toLowerCase()];
@@ -128,7 +140,7 @@ const WelcomeDashboard = () => {
             </div>
             <div>
               <h1 className="text-4xl font-bold text-white mb-2 hover:text-blue-300 transition-colors duration-300 cursor-default">
-                Welcome, Administrator
+                Welcome, Administrator (Travel)
               </h1>
               <p className="text-slate-300 text-lg hover:text-slate-200 transition-colors duration-300">
                 {formatDate(currentTime)} • {formatTime(currentTime)}
@@ -232,6 +244,7 @@ const WelcomeDashboard = () => {
             </div>
           </div>
         </div>
+        {/* Dedicated MCP Server Card */}
       </div>
 
       {/* White Paper Modal */}
@@ -267,9 +280,9 @@ const WelcomeDashboard = () => {
                     for modern business environments.
                   </p>
                   <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-600">
-                    <p className="text-blue-300 font-medium">🌐 Current Deployment: http://localhost:5175/welcome</p>
-                    <p className="text-green-300 font-medium mt-2">📁 Project Structure: React + Vite Frontend with External Python API</p>
-                    <p className="text-purple-300 font-medium mt-2">🔧 Development: Horizontal Sidebar, Full-width Containers, Professional Dark Theme</p>
+                    <p className="text-blue-300 font-medium">🌐 Current Deployment: http://localhost:5178/welcome</p>
+                    <p className="text-green-300 font-medium mt-2">📁 Project Structure: React + Vite Frontend, External Python API, Modular Pages</p>
+                    <p className="text-purple-300 font-medium mt-2">🔧 Features: Horizontal Sidebar, Full-width Containers, Professional Dark Theme, Quick Actions, MCP Prompt & Data Source, Editable Data Source Management</p>
                   </div>
                 </section>
 
@@ -288,6 +301,9 @@ const WelcomeDashboard = () => {
                         <li>• Horizontal Navigation Design</li>
                         <li>• Professional Dark Theme</li>
                         <li>• Responsive Full-width Containers</li>
+                        <li>• Quick Actions Dashboard</li>
+                        <li>• MCP Prompt: Dual Editable Containers (User Story & Test Plan)</li>
+                        <li>• MCP Data Source: Select, Edit, and Save Data Sources</li>
                       </ul>
                     </div>
                     <div className="bg-slate-800/30 p-4 rounded-lg border border-slate-600">
@@ -299,6 +315,7 @@ const WelcomeDashboard = () => {
                         <li>• CORS-enabled APIs</li>
                         <li>• Agent Tools Integration</li>
                         <li>• Real-time Processing</li>
+                        <li>• Data Source Management UI</li>
                       </ul>
                     </div>
                   </div>
@@ -322,7 +339,7 @@ const WelcomeDashboard = () => {
 
                 {/* Key Features */}
                 <section className="mb-8">
-                  <h3 className="text-xl font-semibold text-cyan-400 mb-4">✨ Key Features</h3>
+                  <h3 className="text-xl font-semibold text-cyan-400 mb-4">✨ Key Features (2025)</h3>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-3">
                       <div className="bg-blue-900/20 p-3 rounded-lg border border-blue-500/30">
@@ -335,7 +352,7 @@ const WelcomeDashboard = () => {
                       </div>
                       <div className="bg-purple-900/20 p-3 rounded-lg border border-purple-500/30">
                         <h4 className="font-semibold text-purple-300">🎨 Advanced UI/UX</h4>
-                        <p className="text-sm text-slate-400">Horizontal sidebar, glass morphism, dark theme, full-width containers</p>
+                        <p className="text-sm text-slate-400">Horizontal sidebar, glass morphism, dark theme, full-width containers, Quick Actions, MCP Prompt & Data Source, Data Source Management</p>
                       </div>
                     </div>
                     <div className="space-y-3">

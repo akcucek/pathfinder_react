@@ -109,26 +109,26 @@ export const AuthProvider = ({ children }) => {
 
   // Session timer management
   const startSessionTimer = (expiryTime) => {
+    if (!expiryTime || typeof expiryTime.getTime !== 'function') {
+      console.warn('Session timer not started: expiryTime is invalid');
+      return;
+    }
     const timeLeft = expiryTime.getTime() - new Date().getTime();
-    
     if (timeLeft > 0) {
       const timer = setTimeout(() => {
         alert('Your session has expired. Please log in again.');
         logout();
       }, timeLeft);
-      
       setSessionTimeout(timer);
     }
   };
 
   // Standard login - POC MODE (Authentication bypassed)
-  const login = async (identifier, password, rememberMe = false) => {
+  const login = async (identifier, password, rememberMe = false, setErrorCallback) => {
     setLoading(true);
-    
     try {
       // POC: Bypass authentication since it's not implemented in backend yet
       console.log('POC Mode: Bypassing authentication for:', identifier);
-      
       // Simulate a successful login with mock user data
       const mockUser = {
         id: '1',
@@ -137,30 +137,28 @@ export const AuthProvider = ({ children }) => {
         role: identifier.toLowerCase().includes('admin') ? 'admin' : 'user',
         avatar: null
       };
-
-      // Set user data
       setUser(mockUser);
       setIsAuthenticated(true);
-      
-      // Store in localStorage if remember me is checked
       if (rememberMe) {
         localStorage.setItem('authUser', JSON.stringify(mockUser));
         localStorage.setItem('rememberMe', 'true');
       } else {
         sessionStorage.setItem('authUser', JSON.stringify(mockUser));
       }
-
       // Set session timeout for security (optional in POC)
       if (!rememberMe) {
-        startSessionTimer();
+        // Use a default session duration for POC
+        const sessionDuration = 2 * 60 * 60 * 1000; // 2 hours
+        const expiryTime = new Date(Date.now() + sessionDuration);
+        startSessionTimer(expiryTime);
       }
-
       setLoading(false);
       return { success: true, user: mockUser };
-      
     } catch (err) {
       console.error('POC Login simulation error:', err);
-      setError(err.message || 'Login simulation failed');
+      if (typeof setErrorCallback === 'function') {
+        setErrorCallback(err.message || 'Login simulation failed');
+      }
       setLoading(false);
       throw err;
     }

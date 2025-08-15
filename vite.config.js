@@ -8,9 +8,7 @@ export default defineConfig({
     port: 5178,
     host: true,
     proxy: {
-      '/agent': 'http://localhost:5001',
-      '/test_plans': 'http://localhost:5001',
-      '/user_stories': 'http://localhost:5001'
+      '/api': 'http://localhost:5001'
     }
   }
 })

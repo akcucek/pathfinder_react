@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BATableApproval from './BATableApproval';
-import Sidebar from './components/Sidebar';
 
 const BAApproval = () => {
   const [approved, setApproved] = useState(false);

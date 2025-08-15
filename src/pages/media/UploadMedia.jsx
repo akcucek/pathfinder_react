@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { apiService } from './services/apiService';
+import { apiService } from '../../services/apiService';
 
 // Notification function for visual feedback
 const showNotification = (type, message) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import UploadMedia from './UploadMedia';
-import Sidebar from './components/Sidebar';
+import Sidebar from '../../components/Sidebar';
 import { 
   FaCloudUploadAlt, 
   FaCheckCircle, 
@@ -10,7 +10,7 @@ import {
   FaFileAlt
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const UploadRecording = () => {
   const navigate = useNavigate();

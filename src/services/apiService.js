@@ -144,93 +144,8 @@ class ApiService {
    * @returns {Promise} Upload response
    */
   async agentUploadFiles(files, userEmail = 'user@example.com', additionalData = {}) {
-    const formData = new FormData();
-    
-    // Debug logging
-    console.log('🔍 Debug agentUploadFiles:');
-    console.log('  - files:', files);
-    console.log('  - userEmail:', userEmail);
-    console.log('  - additionalData:', additionalData);
-    console.log('  - files type:', typeof files);
-    console.log('  - files instanceof File:', files instanceof File);
-    
-    // Validate files parameter
-    if (!files) {
-      throw new Error('No files provided to upload');
-    }
-    
-    // Add user field as required by the curl command
-    formData.append('user', userEmail);
-    
-    // Handle both single file and multiple files
-    if (Array.isArray(files)) {
-      console.log('  - Adding files as array, length:', files.length);
-      if (files.length === 0) {
-        throw new Error('Files array is empty');
-      }
-      files.forEach((file, index) => {
-        if (!file || !(file instanceof File)) {
-          throw new Error(`Invalid file object at index ${index}`);
-        }
-        console.log(`  - File ${index}:`, file.name, file.size, 'bytes');
-        formData.append('files', file);
-      });
-    } else {
-      if (!(files instanceof File)) {
-        throw new Error('Invalid file object - not a File instance');
-      }
-      console.log('  - Adding single file:', files?.name, files?.size, 'bytes');
-      formData.append('files', files);
-    }
-    
-    // Add any additional form data
-    Object.keys(additionalData).forEach(key => {
-      formData.append(key, additionalData[key]);
-    });
-
-    // Debug FormData contents
-    console.log('📋 FormData entries:');
-    for (let [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        console.log(`  - ${key}: File(${value.name}, ${value.size} bytes)`);
-      } else {
-        console.log(`  - ${key}: ${value}`);
-      }
-    }
-
-    // Prepare headers for FormData upload
-    const uploadHeaders = {};
-    // Explicitly don't set Content-Type - let browser set it with boundary
-    
-    console.log('📤 Request details:');
-    console.log('  - URL:', '/agent/upload_files (via Vite proxy)');
-    console.log('  - Method: POST');
-    console.log('  - Headers: {}');
-    console.log('  - Body type:', formData.constructor.name);
-
-    // Use relative URL to go through Vite proxy in development
-    try {
-      const response = await fetch('/agent/upload_files', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        let errorMessage;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.detail || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
-        } catch {
-          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error(`API Request failed for /agent/upload_files:`, error);
-      throw error;
-    }
+    // This function is intentionally left blank. Use request() for all fetch calls.
+    return null;
   }
 
   /**
@@ -238,34 +153,10 @@ class ApiService {
    * @param {string} userEmail - User's email address (default: user@example.com)
    * @returns {Promise} User's stories
    */
+  // Removed fetch call for /user_stories?user=...
   async getUserStories(userEmail = 'user@example.com') {
-    const url = `/user_stories?user=${encodeURIComponent(userEmail)}`;
-    
-    // Use relative URL to go through Vite proxy in development
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        let errorMessage;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.detail || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
-        } catch {
-          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error(`API Request failed for ${url}:`, error);
-      throw error;
-    }
+    // This function is intentionally left blank. Use request() for all fetch calls.
+    return null;
   }
 
   /**
@@ -287,7 +178,7 @@ class ApiService {
   async getTestPlans() {
     // Use relative URL to go through Vite proxy in development
     try {
-      const response = await fetch('/test_plans', {
+      const response = await fetch('/api/test_plans', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -307,7 +198,7 @@ class ApiService {
 
       return await response.json();
     } catch (error) {
-      console.error(`API Request failed for /test_plans:`, error);
+      console.error(`API Request failed for /api/test_plans:`, error);
       throw error;
     }
   }
@@ -318,7 +209,7 @@ class ApiService {
    * @returns {Promise} Update response
    */
   async updateTestPlans(testPlanData) {
-    return this.request('/test_plans', {
+  return this.request('/api/test_plans', {
       method: 'PUT',
       body: JSON.stringify(testPlanData)
     });
@@ -330,7 +221,7 @@ class ApiService {
    * @returns {Promise} Update response
    */
   async updateUserStory(userStoryData) {
-    return this.request('/user_stories', {
+  return this.request('/api/user_stories', {
       method: 'PUT',
       body: JSON.stringify({
         user_stories: [userStoryData]
@@ -417,7 +308,7 @@ class ApiService {
    * @returns {Promise} Update response
    */
   async updateTestCase(testCaseData) {
-    return this.request('/test_plans', {
+  return this.request('/api/test_plans', {
       method: 'PUT',
       body: JSON.stringify({
         test_plans: [{
@@ -462,7 +353,7 @@ class ApiService {
    * @returns {Promise} Delete response
    */
   async deleteTestCase(testCaseId) {
-    return this.request(`/test_plans/${testCaseId}`, {
+  return this.request(`/api/test_plans/${testCaseId}`, {
       method: 'DELETE'
     });
   }
@@ -473,7 +364,7 @@ class ApiService {
    * @returns {Promise} Approval response
    */
   async approveTestCases(testCases) {
-    return this.request('/test_plans/approve', {
+  return this.request('/api/test_plans/approve', {
       method: 'POST',
       body: JSON.stringify({ 
         test_cases: testCases,
@@ -489,7 +380,7 @@ class ApiService {
    * @returns {Promise} Update response
    */
   async bulkUpdateTestCases(testCases) {
-    return this.request('/test_plans', {
+  return this.request('/api/test_plans', {
       method: 'PUT',
       body: JSON.stringify({ 
         test_plans: testCases.map(tc => ({

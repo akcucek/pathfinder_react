@@ -6,7 +6,10 @@ import {
   FaFileAlt, 
   FaTasks, 
   FaBug, 
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaRocket,
+  FaServer,
+  FaBars
 } from 'react-icons/fa';
 // Removed unused FaDatabase, FaServer, FaCircle, FaWifi, FaEye
 import { useAuth } from '../contexts/AuthContext';
@@ -59,6 +62,20 @@ const sidebarSections = [
         path: '/generate-rca-report',
         description: 'Root cause analysis reports',
         badge: null
+      },
+      {
+        label: 'MCP Prompt',
+        icon: FaRocket,
+        path: '/mcp-prompt',
+        description: 'Model Context Protocol prompt interface',
+        badge: null
+      },
+      {
+        label: 'MCP Data Source',
+        icon: FaServer,
+        path: '/mcp-data-source',
+        description: 'Manage MCP server data sources',
+        badge: null
       }
     ]
   },
@@ -94,20 +111,11 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
     <header className="w-full bg-gray-900/95 backdrop-blur-xl border-b border-gray-800/50 fixed top-0 left-0 z-50 shadow-xl shadow-black/20">
       <div className="max-w-screen-2xl mx-auto">
         <nav className="flex items-center justify-between h-20 px-12">
-          {/* Left: Logo & Brand */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <div className="relative">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <img src="/circle.png" alt="Logo" className="h-14 w-14 object-contain rounded-full border-4 border-white/10 shadow-xl" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-gray-900 animate-pulse"></div>
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Dashboard
-              </h1>
-              <p className="text-xs text-gray-400 -mt-1">Management Console</p>
-            </div>
+          {/* Left: Hamburger Icon */}
+          <div className="flex-shrink-0 flex items-center">
+            <button className="p-2 rounded-lg hover:bg-gray-800/60 transition-colors">
+              <FaBars className="text-2xl text-gray-300" />
+            </button>
           </div>
           
           {/* Center: Navigation */}
@@ -141,7 +149,6 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
                       {active && (
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl"></div>
                       )}
-                      
                       <div className={`relative z-10 ${active ? 'text-blue-400' : item.isLogout ? 'text-red-400 group-hover:text-red-300' : 'text-gray-400 group-hover:text-gray-200'}`}>
                         <Icon className={`text-lg ${active ? 'drop-shadow-sm filter drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]' : ''}`} />
                         {item.badge && (
@@ -150,13 +157,11 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
                           </span>
                         )}
                       </div>
-                      
                       <span className={`relative z-10 text-sm font-medium transition-colors ${
                         active ? 'text-blue-300' : item.isLogout ? 'text-red-400 group-hover:text-red-300' : 'text-gray-300 group-hover:text-white'
                       }`}>
                         {item.label}
                       </span>
-                      
                       {/* Hover effect */}
                       {!active && (
                         <div className="absolute inset-0 bg-gradient-to-r from-gray-600/0 via-gray-600/30 to-gray-600/0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -172,10 +177,7 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="hidden md:flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-sm shadow-emerald-400/50"></div>
-              <span className="text-sm text-gray-300 font-medium">Online</span>
-            </div>
-            <div className="w-8 h-8 flex items-center justify-center">
-              <span className="text-sm font-bold text-gray-200">Admin</span>
+              <span className="text-sm text-gray-300 font-medium">Travel Domain Admin</span>
             </div>
           </div>
         </nav>

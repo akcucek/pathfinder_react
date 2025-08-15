@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import { apiService } from './services/apiService';
+import Sidebar from '../../components/Sidebar';
+import { apiService } from '../../services/apiService';
 import { 
   FaBug, 
   FaSearch, 

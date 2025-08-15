@@ -10,6 +10,8 @@
 export const POC_CONFIG = {
   // Enable/disable POC mode
   POC_MODE: false,
+  // Enable/disable restrict mode
+  RESTRICT_MODE: true,
   
   // External service configuration
   EXTERNAL_SERVICE_URL: '', // Use relative URLs for proxy

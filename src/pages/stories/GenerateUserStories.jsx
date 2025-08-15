@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import { apiService } from './services/apiService';
+import { Dialog } from '@headlessui/react';
+import Sidebar from '../../components/Sidebar';
+import { apiService } from '../../services/apiService';
 import { 
   FaFileAlt, 
   FaCheck, 
@@ -14,6 +15,9 @@ import {
 } from 'react-icons/fa';
 
 export default function GenerateUserStories() {
+  const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
+  const [modalAcceptanceValue, setModalAcceptanceValue] = useState('');
+  const [modalStoryId, setModalStoryId] = useState(null);
   const [activeMenu, setActiveMenu] = useState('Generate User Stories');
   const [userStories, setUserStories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,10 +32,12 @@ export default function GenerateUserStories() {
         setLoading(true);
         setError('');
         console.log('Attempting to load user stories from API...');
-        // Try to fetch from the API endpoint
-        const response = await apiService.getUserStories('user@example.com');
-        if (response && response.success && response.data && response.data.user_stories) {
-          // Transform API data to match component structure
+  // Updated endpoint for user stories
+  const response = await apiService.request('/api/user_stories', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (response && (response.success === true || response.code === 200) && response.data && Array.isArray(response.data.user_stories)) {
           const transformedStories = response.data.user_stories.map(story => ({
             id: story.id,
             user_story_id: story.user_story_id,
@@ -39,7 +45,6 @@ export default function GenerateUserStories() {
             userStory: story.title,
             useCases: story.description,
             acceptanceCriteria: (() => {
-              // Handle acceptance_criteria which comes as JSON string
               if (typeof story.acceptance_criteria === 'string') {
                 try {
                   const parsed = JSON.parse(story.acceptance_criteria);
@@ -48,14 +53,12 @@ export default function GenerateUserStories() {
                   return story.acceptance_criteria;
                 }
               }
-              return Array.isArray(story.acceptance_criteria) 
-                ? story.acceptance_criteria.join('\n') 
+              return Array.isArray(story.acceptance_criteria)
+                ? story.acceptance_criteria.join('\n')
                 : story.acceptance_criteria;
             })(),
             isEditing: false,
-            // Store additional API fields
             tags: (() => {
-              // Handle tags which comes as JSON string
               if (typeof story.tags === 'string') {
                 try {
                   return JSON.parse(story.tags);
@@ -73,23 +76,62 @@ export default function GenerateUserStories() {
             void_ind: story.void_ind,
             jira_key: story.jira_key
           }));
-          
           setUserStories(transformedStories);
           console.log('Successfully loaded user stories from API:', transformedStories.length, 'stories');
         } else {
-          throw new Error('Invalid API response format');
+          // Log the raw response for debugging
+          console.error('API response format error:', response);
+          // Fallback sample data
+          const sampleStories = [
+            {
+              id: 1,
+              user_story_id: 'US-1',
+              checked: false,
+              userStory: 'As a user, I want to log in so I can access my dashboard.',
+              useCases: 'User authentication and dashboard access.',
+              acceptanceCriteria: 'User can log in with valid credentials.',
+              isEditing: false,
+              tags: ['auth', 'dashboard'],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              user: 'user@example.com',
+              media_file_id: null,
+              ba_processed: false,
+              void_ind: false,
+              jira_key: 'PF-101'
+            }
+          ];
+          setUserStories(sampleStories);
+          setError('API service not available - showing sample user stories.');
         }
       } catch (err) {
         console.log('API service unavailable. Error:', err.message);
-        setError('API service not available - no user stories to display');
-        
-        // No fallback data - show empty state
-        setUserStories([]);
+        // Fallback sample data
+        const sampleStories = [
+          {
+            id: 1,
+            user_story_id: 'US-1',
+            checked: false,
+            userStory: 'As a user, I want to log in so I can access my dashboard.',
+            useCases: 'User authentication and dashboard access.',
+            acceptanceCriteria: 'User can log in with valid credentials.',
+            isEditing: false,
+            tags: ['auth', 'dashboard'],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            user: 'user@example.com',
+            media_file_id: null,
+            ba_processed: false,
+            void_ind: false,
+            jira_key: 'PF-101'
+          }
+        ];
+        setUserStories(sampleStories);
+        setError('API service not available - showing sample user stories.');
       } finally {
         setLoading(false);
       }
     };
-
     loadUserStories();
   }, []);
 
@@ -257,6 +299,18 @@ export default function GenerateUserStories() {
   };
 
   const handleInputChange = (field, value) => {
+  // Open modal for Acceptance Criteria editing
+  const openAcceptanceModal = (storyId, value) => {
+    setModalStoryId(storyId);
+    setModalAcceptanceValue(value);
+    setShowAcceptanceModal(true);
+  };
+
+  // Save modal value to editingValues
+  const saveAcceptanceModal = () => {
+    handleInputChange('acceptanceCriteria', modalAcceptanceValue);
+    setShowAcceptanceModal(false);
+  };
     setEditingValues(prev => ({
       ...prev,
       [field]: value
@@ -332,13 +386,13 @@ export default function GenerateUserStories() {
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Title</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Description</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Acceptance Criteria</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Jira Number</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300 w-32">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-600/30">
                   {userStories.map((story) => (
                     <tr key={story.id} className={`hover:bg-slate-700/20 transition-colors ${story.approved ? 'bg-green-900/10 border-l-4 border-green-500' : ''}`}>
-                      
                       <td className="px-6 py-4 text-center">
                         {story.isEditing ? (
                           <textarea
@@ -371,6 +425,11 @@ export default function GenerateUserStories() {
                         ) : (
                           <p className="text-slate-200 text-sm leading-relaxed">{story.acceptanceCriteria}</p>
                         )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-slate-200 text-sm leading-relaxed">
+                          {story.jira_key || '—'}
+                        </p>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">

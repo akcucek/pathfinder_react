@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function User() {
   const [activeMenu, setActiveMenu] = useState('User');

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import { apiService } from './services/apiService';
+import Sidebar from '../../components/Sidebar';
+  import { apiService } from '../../services/apiService';
 import { 
   FaTasks, 
   FaCheck, 
@@ -43,174 +43,110 @@ export default function GenerateTestCases() {
     const loadTestCases = async () => {
       try {
         setLoading(true);
-        // apiService.updateBaseURL('/');
         const response = await apiService.getTestCases();
         console.log('API raw response:', response);
-        // Defensive: check for data and test_plans array
-        const testPlans = response?.data?.test_plans || [];
-        const normalizedData = testPlans.map((plan, idx) => {
-          // Handle preconditions as JSON string or array
-          let preconditions = '';
-          if (typeof plan.preconditions === 'string') {
-            try {
-              const arr = JSON.parse(plan.preconditions);
-              if (Array.isArray(arr)) preconditions = arr.join('\n');
-              else preconditions = plan.preconditions;
-            } catch {
-              preconditions = plan.preconditions;
+        const testPlans = (response && (response.success === true || response.code === 200) && response.data && Array.isArray(response.data.test_plans))
+          ? response.data.test_plans
+          : null;
+        if (Array.isArray(testPlans)) {
+          const normalizedData = testPlans.map((plan, idx) => {
+            let preconditions = '';
+            if (typeof plan.preconditions === 'string') {
+              try {
+                const arr = JSON.parse(plan.preconditions);
+                if (Array.isArray(arr)) preconditions = arr.join('\n');
+                else preconditions = plan.preconditions;
+              } catch {
+                preconditions = plan.preconditions;
+              }
+            } else if (Array.isArray(plan.preconditions)) {
+              preconditions = plan.preconditions.join('\n');
             }
-          } else if (Array.isArray(plan.preconditions)) {
-            preconditions = plan.preconditions.join('\n');
-          }
-          
-          // Handle postconditions as array or string
-          let postconditions = '';
-          if (Array.isArray(plan.postconditions)) {
-            postconditions = plan.postconditions.join('\n');
-          } else if (typeof plan.postconditions === 'string') {
-            postconditions = plan.postconditions;
-          }
-          
-          // Handle test_steps as array of objects or string
-          let testSteps = '';
-          let expResult = plan.expected_result || '';
-          
-          if (Array.isArray(plan.test_steps)) {
-            testSteps = plan.test_steps.map((step, index) => 
-              `${step.step_number || (index + 1)}. ${step.action}`
-            ).filter(Boolean).join('\n');
-            // If expected_result is empty, try to get from test_steps
-            if (!expResult) {
-              expResult = plan.test_steps.map(step => step.expected_result).filter(Boolean).join('\n');
+            let postconditions = '';
+            if (Array.isArray(plan.postconditions)) {
+              postconditions = plan.postconditions.join('\n');
+            } else if (typeof plan.postconditions === 'string') {
+              postconditions = plan.postconditions;
             }
-          } else if (typeof plan.test_steps === 'string') {
-            testSteps = plan.test_steps;
-          }
-          
-          // Use title from user_story if available, fallback to plan title
-          let userStory = plan.user_story?.title || plan.title || plan.description || '';
-          
-          return {
-            id: plan.id,
-            usid: plan.user_story_id || `USID-${plan.id}`,
-            tpid: plan.test_plan_id || `TPID-${plan.id}`,
-            userStory,
-            preconditions,
-            postconditions,
-            expResult,
-            testSteps,
-            checked: false,
-            // Store original API fields for reference
-            title: plan.title,
-            description: plan.description,
-            test_plan_id: plan.test_plan_id,
-            user_story_id: plan.user_story_id,
-            qa_processed: plan.qa_processed,
-            tags: plan.tags,
-            void_ind: plan.void_ind,
-            created_at: plan.created_at,
-            user_story: plan.user_story
-          };
-        });
-        setTestCases(normalizedData);
-        setError('');
-        console.log('Normalized test cases:', normalizedData);
+            let testSteps = '';
+            let expResult = plan.expected_result || '';
+            if (Array.isArray(plan.test_steps)) {
+              testSteps = plan.test_steps.map((step, index) => 
+                `${step.step_number || (index + 1)}. ${step.action}`
+              ).filter(Boolean).join('\n');
+              if (!expResult) {
+                expResult = plan.test_steps.map(step => step.expected_result).filter(Boolean).join('\n');
+              }
+            } else if (typeof plan.test_steps === 'string') {
+              testSteps = plan.test_steps;
+            }
+            let userStory = plan.user_story?.title || plan.title || plan.description || '';
+            return {
+              id: plan.id,
+              usid: plan.user_story_id || `USID-${plan.id}`,
+              tpid: plan.test_plan_id || `TPID-${plan.id}`,
+              userStory,
+              preconditions,
+              postconditions,
+              expResult,
+              testSteps,
+              checked: false,
+              // Store original API fields for reference
+              title: plan.title,
+              description: plan.description,
+              test_plan_id: plan.test_plan_id,
+              user_story_id: plan.user_story_id,
+              qa_processed: plan.qa_processed,
+              tags: plan.tags,
+              void_ind: plan.void_ind,
+              created_at: plan.created_at,
+              user_story: plan.user_story
+            };
+          });
+          setTestCases(normalizedData);
+          setError('');
+          console.log('Normalized test cases:', normalizedData);
+        } else {
+          // Fallback sample test case
+          const sampleTestCases = [
+            {
+              id: 1,
+              usid: 'USID-1',
+              tpid: 'TPID-1',
+              userStory: 'As a user, I want to log in so I can access my dashboard.',
+              preconditions: 'User is registered.',
+              postconditions: 'User is redirected to dashboard.',
+              expResult: 'Dashboard loads successfully.',
+              testSteps: '1. Enter username and password\n2. Click login',
+              checked: false
+            }
+          ];
+          setTestCases(sampleTestCases);
+          setError('API service not available - showing sample test cases.');
+        }
       } catch (err) {
-        console.error('API error:', err);
-        setError(`API Error: ${err.message || 'No test cases found'}`);
-        setTestCases([]);
+        // Fallback sample test case
+        const sampleTestCases = [
+          {
+            id: 1,
+            usid: 'USID-1',
+            tpid: 'TPID-1',
+            userStory: 'As a user, I want to log in so I can access my dashboard.',
+            preconditions: 'User is registered.',
+            postconditions: 'User is redirected to dashboard.',
+            expResult: 'Dashboard loads successfully.',
+            testSteps: '1. Enter username and password\n2. Click login',
+            checked: false
+          }
+        ];
+        setTestCases(sampleTestCases);
+        setError('API service not available - showing sample test cases.');
       } finally {
         setLoading(false);
       }
     };
-
     loadTestCases();
   }, []);
-
-
-
-  const handleEdit = (testCase) => {
-    setTestCases(cases => 
-      cases.map(c => 
-        c.id === testCase.id ? { ...c, isEditing: true } : c
-      )
-    );
-    setEditingValues({
-      userStory: testCase.userStory,
-      preconditions: testCase.preconditions || '',
-      postconditions: testCase.postconditions || '',
-      expResult: testCase.expResult || '',
-      testSteps: testCase.testSteps || testCase.teststeps || ''
-    });
-  };
-
-  const handleSave = async (id) => {
-    try {
-      // Find the original test case to get additional fields
-      const originalTestCase = testCases.find(tc => tc.id === id);
-      
-      // Prepare data for API call with proper format matching backend structure
-      const testCaseToUpdate = {
-        id: id,
-        title: editingValues.userStory,
-        description: editingValues.userStory, // Use userStory as description too
-        preconditions: Array.isArray(editingValues.preconditions) 
-          ? JSON.stringify(editingValues.preconditions)
-          : typeof editingValues.preconditions === 'string' && editingValues.preconditions.startsWith('[')
-            ? editingValues.preconditions
-            : JSON.stringify(editingValues.preconditions ? editingValues.preconditions.split('\n').filter(Boolean) : []),
-        postconditions: Array.isArray(editingValues.postconditions)
-          ? editingValues.postconditions
-          : typeof editingValues.postconditions === 'string' 
-            ? editingValues.postconditions.split('\n').filter(Boolean)
-            : [editingValues.postconditions || ""],
-        expected_result: editingValues.expResult || "",
-        test_steps: Array.isArray(editingValues.testSteps)
-          ? editingValues.testSteps
-          : typeof editingValues.testSteps === 'string'
-            ? editingValues.testSteps.split('\n').filter(Boolean).map((step, index) => ({
-                step_number: index + 1,
-                action: step,
-                expected_result: ""
-              }))
-            : [],
-        qa_processed: originalTestCase?.qa_processed || 1, // Mark as processed since we're editing
-        tags: Array.isArray(originalTestCase?.tags) ? originalTestCase.tags : (originalTestCase?.tags ? [originalTestCase.tags] : []),
-        test_plan_id: originalTestCase?.test_plan_id,
-        user_story_id: originalTestCase?.user_story_id,
-        void_ind: originalTestCase?.void_ind || 0,
-        created_at: originalTestCase?.created_at,
-        updated_at: new Date().toISOString()
-      };
-
-      // Call API to update test case
-      await apiService.updateTestCase(testCaseToUpdate);
-
-      // Update local state on success
-      setTestCases(cases => 
-        cases.map(testCase => 
-          testCase.id === id 
-            ? { 
-                ...testCase, 
-                userStory: editingValues.userStory,
-                preconditions: editingValues.preconditions,
-                postconditions: editingValues.postconditions,
-                expResult: editingValues.expResult,
-                testSteps: editingValues.testSteps,
-                isEditing: false 
-              } 
-            : testCase
-        )
-      );
-      setEditingValues({});
-      
-      // Show success message
-      alert('Test case updated successfully!');
-    } catch (error) {
-      console.error('Failed to update test case:', error);
-      alert(`Failed to update test case: ${error.message}`);
-    }
-  };
 
   const handleCancel = (id) => {
     setTestCases(cases => 

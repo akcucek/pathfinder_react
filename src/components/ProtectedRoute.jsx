@@ -1,13 +1,14 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { POC_CONFIG } from '../config/pocConfig';
 
 const ProtectedRoute = ({ children, requiredRole = null, requiredPermission = null }) => {
   const { isAuthenticated, user, hasRole, hasPermission } = useAuth();
   const location = useLocation();
 
-  // If not authenticated, redirect to login
-  if (!isAuthenticated) {
+  // Restrict mode: enforce authentication for all protected routes
+  if (POC_CONFIG.RESTRICT_MODE && !isAuthenticated) {
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 

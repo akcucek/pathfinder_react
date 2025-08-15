@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "./components/Sidebar";
-import UploadMedia from "./UploadMedia";
+import UploadMedia from "../media/UploadMedia";
 
 export default function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

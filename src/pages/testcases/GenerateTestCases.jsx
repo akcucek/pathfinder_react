@@ -1,3 +1,21 @@
+  // Bulk reject selected test cases
+  const handleRejectSelected = async () => {
+    const selected = testCases.filter(tc => tc.checked && !tc.rejected && !tc.approved);
+    if (selected.length === 0) return;
+    try {
+      for (const testCase of selected) {
+        await apiService.updateTestCase({ ...testCase, rejected: true });
+      }
+      setTestCases(cases =>
+        cases.map(tc =>
+          tc.checked ? { ...tc, rejected: true, checked: false } : tc
+        )
+      );
+      alert('Selected test cases rejected!');
+    } catch (error) {
+      alert('Failed to reject selected test cases.');
+    }
+  };
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
   import { apiService } from '../../services/apiService';
@@ -37,6 +55,19 @@ export default function GenerateTestCases() {
   const [error, setError] = useState('');
 
   const [editingValues, setEditingValues] = useState({});
+
+  // Modal states for editing fields
+  const [showTitleModal, setShowTitleModal] = useState(false);
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  const [showPreconditionsModal, setShowPreconditionsModal] = useState(false);
+  const [showPostconditionsModal, setShowPostconditionsModal] = useState(false);
+  const [showTestStepsModal, setShowTestStepsModal] = useState(false);
+  const [modalTitleValue, setModalTitleValue] = useState('');
+  const [modalDescriptionValue, setModalDescriptionValue] = useState('');
+  const [modalPreconditionsValue, setModalPreconditionsValue] = useState('');
+  const [modalPostconditionsValue, setModalPostconditionsValue] = useState('');
+  const [modalTestStepsValue, setModalTestStepsValue] = useState('');
+  const [currentEditingTestCaseId, setCurrentEditingTestCaseId] = useState(null);
 
   // Load test cases from external API service
   useEffect(() => {
@@ -157,6 +188,157 @@ export default function GenerateTestCases() {
     setEditingValues({});
   };
 
+  // Modal functions for editing fields
+  const openTitleModal = (testCase) => {
+    setModalTitleValue(testCase.userStory);
+    setCurrentEditingTestCaseId(testCase.id);
+    setShowTitleModal(true);
+  };
+
+  const openDescriptionModal = (testCase) => {
+    setModalDescriptionValue(testCase.description || '');
+    setCurrentEditingTestCaseId(testCase.id);
+    setShowDescriptionModal(true);
+  };
+
+  const openPreconditionsModal = (testCase) => {
+    setModalPreconditionsValue(testCase.preconditions);
+    setCurrentEditingTestCaseId(testCase.id);
+    setShowPreconditionsModal(true);
+  };
+
+  const openPostconditionsModal = (testCase) => {
+    setModalPostconditionsValue(testCase.postconditions);
+    setCurrentEditingTestCaseId(testCase.id);
+    setShowPostconditionsModal(true);
+  };
+
+  const openTestStepsModal = (testCase) => {
+    setModalTestStepsValue(testCase.testSteps);
+    setCurrentEditingTestCaseId(testCase.id);
+    setShowTestStepsModal(true);
+  };
+
+  const saveTitleModal = async () => {
+    try {
+      const testCaseToUpdate = testCases.find(tc => tc.id === currentEditingTestCaseId);
+      const updatedTestCase = { ...testCaseToUpdate, title: modalTitleValue };
+      await apiService.updateTestCase(updatedTestCase);
+      
+      setTestCases(cases => 
+        cases.map(testCase => 
+          testCase.id === currentEditingTestCaseId ? { ...testCase, userStory: modalTitleValue } : testCase
+        )
+      );
+      setShowTitleModal(false);
+      setCurrentEditingTestCaseId(null);
+    } catch (error) {
+      alert('Failed to update title');
+    }
+  };
+
+  const saveDescriptionModal = async () => {
+    try {
+      const testCaseToUpdate = testCases.find(tc => tc.id === currentEditingTestCaseId);
+      const updatedTestCase = { ...testCaseToUpdate, description: modalDescriptionValue };
+      await apiService.updateTestCase(updatedTestCase);
+      
+      setTestCases(cases => 
+        cases.map(testCase => 
+          testCase.id === currentEditingTestCaseId ? { ...testCase, description: modalDescriptionValue } : testCase
+        )
+      );
+      setShowDescriptionModal(false);
+      setCurrentEditingTestCaseId(null);
+    } catch (error) {
+      alert('Failed to update description');
+    }
+  };
+
+  const savePreconditionsModal = async () => {
+    try {
+      const testCaseToUpdate = testCases.find(tc => tc.id === currentEditingTestCaseId);
+      const updatedTestCase = { ...testCaseToUpdate, preconditions: modalPreconditionsValue };
+      await apiService.updateTestCase(updatedTestCase);
+      
+      setTestCases(cases => 
+        cases.map(testCase => 
+          testCase.id === currentEditingTestCaseId ? { ...testCase, preconditions: modalPreconditionsValue } : testCase
+        )
+      );
+      setShowPreconditionsModal(false);
+      setCurrentEditingTestCaseId(null);
+    } catch (error) {
+      alert('Failed to update preconditions');
+    }
+  };
+
+  const savePostconditionsModal = async () => {
+    try {
+      const testCaseToUpdate = testCases.find(tc => tc.id === currentEditingTestCaseId);
+      const updatedTestCase = { ...testCaseToUpdate, postconditions: modalPostconditionsValue };
+      await apiService.updateTestCase(updatedTestCase);
+      
+      setTestCases(cases => 
+        cases.map(testCase => 
+          testCase.id === currentEditingTestCaseId ? { ...testCase, postconditions: modalPostconditionsValue } : testCase
+        )
+      );
+      setShowPostconditionsModal(false);
+      setCurrentEditingTestCaseId(null);
+    } catch (error) {
+      alert('Failed to update postconditions');
+    }
+  };
+
+  const saveTestStepsModal = async () => {
+    try {
+      const testCaseToUpdate = testCases.find(tc => tc.id === currentEditingTestCaseId);
+      const updatedTestCase = { ...testCaseToUpdate, testSteps: modalTestStepsValue };
+      await apiService.updateTestCase(updatedTestCase);
+      
+      setTestCases(cases => 
+        cases.map(testCase => 
+          testCase.id === currentEditingTestCaseId ? { ...testCase, testSteps: modalTestStepsValue } : testCase
+        )
+      );
+      setShowTestStepsModal(false);
+      setCurrentEditingTestCaseId(null);
+    } catch (error) {
+      alert('Failed to update test steps');
+    }
+  };
+
+  const cancelTitleModal = () => {
+    setShowTitleModal(false);
+    setCurrentEditingTestCaseId(null);
+    setModalTitleValue('');
+  };
+
+  const cancelDescriptionModal = () => {
+    setShowDescriptionModal(false);
+    setCurrentEditingTestCaseId(null);
+    setModalDescriptionValue('');
+  };
+
+  const cancelPreconditionsModal = () => {
+    setShowPreconditionsModal(false);
+    setCurrentEditingTestCaseId(null);
+    setModalPreconditionsValue('');
+  };
+
+  const cancelPostconditionsModal = () => {
+    setShowPostconditionsModal(false);
+    setCurrentEditingTestCaseId(null);
+    setModalPostconditionsValue('');
+  };
+
+  const cancelTestStepsModal = () => {
+    setShowTestStepsModal(false);
+    setCurrentEditingTestCaseId(null);
+    setModalTestStepsValue('');
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this test case?')) {
       try {
@@ -235,7 +417,7 @@ export default function GenerateTestCases() {
                 <FaTasks className="text-purple-400 text-3xl group-hover:text-purple-300 group-hover:scale-110 transition-all duration-300" />
                 <div>
                   <h1 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent group-hover:from-purple-300 group-hover:to-blue-300 transition-all duration-300">
-                    Test Plan Review
+                    Review Test Plans
                   </h1>
                   <p className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
                     Review, edit, and approve generated test cases
@@ -244,13 +426,22 @@ export default function GenerateTestCases() {
               </div>
               <div className="flex gap-3">
                 <button
-                  className={`px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-green-300/30 ${testCases.filter(tc => tc.checked && !tc.approved).length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-green-300/30 ${testCases.filter(tc => tc.checked && !tc.approved && !tc.rejected).length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                   onClick={handleApproveSelected}
-                  disabled={testCases.filter(tc => tc.checked && !tc.approved).length === 0}
+                  disabled={testCases.filter(tc => tc.checked && !tc.approved && !tc.rejected).length === 0}
                   title="Approve selected test cases"
                 >
                   <FaCheckCircle className="text-white" />
                   Approve
+                </button>
+                <button
+                  className={`px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-red-300/30 ${testCases.filter(tc => tc.checked && !tc.rejected && !tc.approved).length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={handleRejectSelected}
+                  disabled={testCases.filter(tc => tc.checked && !tc.rejected && !tc.approved).length === 0}
+                  title="Reject selected test cases"
+                >
+                  <FaTimes className="text-white" />
+                  Reject
                 </button>
               </div>
             </div>
@@ -263,6 +454,7 @@ export default function GenerateTestCases() {
                 <thead className="bg-slate-700/50 border-b border-slate-600/50">
                   <tr>
                     {/* Checkbox column removed */}
+                    <th className="px-4 py-4 text-center text-sm font-medium text-slate-300">Select</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Title</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Description</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Pre-Conditions</th>
@@ -273,66 +465,64 @@ export default function GenerateTestCases() {
                 </thead>
                 <tbody className="divide-y divide-slate-600/30">
                   {testCases.map((testCase) => (
-                    <tr key={testCase.id} className={`hover:bg-slate-700/20 transition-colors ${testCase.approved ? 'bg-green-900/10 border-l-4 border-green-500' : ''}`}>
+                    <tr key={testCase.id} className={`hover:bg-slate-700/20 transition-colors ${testCase.approved ? 'bg-green-900/10 border-l-4 border-green-500' : ''} ${testCase.rejected ? 'bg-red-900/10 border-l-4 border-red-500' : ''}`}>
                       <td className="px-4 py-4 text-center">
                         <input
                           type="checkbox"
                           checked={!!testCase.checked}
                           onChange={() => setTestCases(cases => cases.map(tc => tc.id === testCase.id ? { ...tc, checked: !tc.checked } : tc))}
                           disabled={!!testCase.approved}
-                          className="form-checkbox h-5 w-5 text-green-500 rounded focus:ring-0 border-slate-500 bg-slate-800 cursor-pointer disabled:opacity-50"
+                          className="form-checkbox h-3 w-3 text-green-500 rounded focus:ring-0 border-slate-500 bg-slate-800 cursor-pointer disabled:opacity-50"
                           title={testCase.approved ? 'Already approved' : 'Select for approval'}
                         />
                       </td>
                       <td className="px-6 py-4">
-                        {testCase.isEditing ? (
-                          <textarea
-                            value={editingValues.userStory || ''}
-                            onChange={(e) => handleInputChange('userStory', e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-white text-sm resize-vertical min-h-[80px]"
-                          />
-                        ) : (
-                          <p className="text-slate-200 text-sm leading-relaxed">{testCase.userStory}</p>
-                        )}
+                        <div 
+                          className="text-slate-200 text-sm leading-relaxed cursor-pointer hover:bg-slate-700/20 rounded p-2 transition-colors"
+                          onClick={() => openTitleModal(testCase)}
+                          title="Click to edit title"
+                        >
+                          {testCase.userStory}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-slate-200 text-sm leading-relaxed">{testCase.description}</p>
+                        <div 
+                          className="text-slate-200 text-sm leading-relaxed cursor-pointer hover:bg-slate-700/20 rounded p-2 transition-colors"
+                          onClick={() => openDescriptionModal(testCase)}
+                          title="Click to edit description"
+                        >
+                          {testCase.description || 'Click to add description...'}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        {testCase.isEditing ? (
-                          <textarea
-                            value={editingValues.preconditions || ''}
-                            onChange={(e) => handleInputChange('preconditions', e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-white text-sm resize-vertical min-h-[60px]"
-                          />
-                        ) : (
-                          <p className="text-slate-200 text-sm leading-relaxed">{testCase.preconditions}</p>
-                        )}
+                        <div 
+                          className="text-slate-200 text-sm leading-relaxed cursor-pointer hover:bg-slate-700/20 rounded p-2 transition-colors"
+                          onClick={() => openPreconditionsModal(testCase)}
+                          title="Click to edit preconditions"
+                        >
+                          {testCase.preconditions}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                      {testCase.isEditing ? (
-                        <textarea
-                          value={editingValues.postconditions || ''}
-                          onChange={(e) => handleInputChange('postconditions', e.target.value)}
-                          className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-white text-sm resize-vertical min-h-[60px]"
-                        />
-                      ) : (
-                        <p className="text-slate-200 text-sm leading-relaxed">{testCase.postconditions}</p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="overflow-y-auto max-h-32">
-                        {testCase.isEditing ? (
-                          <textarea
-                            value={editingValues.testSteps || ''}
-                            onChange={(e) => handleInputChange('testSteps', e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-white text-sm resize-vertical min-h-[60px]"
-                          />
-                        ) : (
-                          <p className="text-slate-200 text-sm leading-relaxed">{testCase.testSteps}</p>
-                        )}
-                      </div>
-                    </td>
+                        <div 
+                          className="text-slate-200 text-sm leading-relaxed cursor-pointer hover:bg-slate-700/20 rounded p-2 transition-colors"
+                          onClick={() => openPostconditionsModal(testCase)}
+                          title="Click to edit postconditions"
+                        >
+                          {testCase.postconditions}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="overflow-y-auto max-h-32">
+                          <div 
+                            className="text-slate-200 text-sm leading-relaxed cursor-pointer hover:bg-slate-700/20 rounded p-2 transition-colors"
+                            onClick={() => openTestStepsModal(testCase)}
+                            title="Click to edit test steps"
+                          >
+                            {testCase.testSteps}
+                          </div>
+                        </div>
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
                           {testCase.isEditing ? (
@@ -447,6 +637,141 @@ export default function GenerateTestCases() {
         </div>
       </main>
       </div>
+
+      {/* Title Edit Modal */}
+      {showTitleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-blue-400/30">
+            <div className="flex items-center justify-between p-6 border-b border-slate-600">
+              <h3 className="text-xl font-bold text-white">Edit Test Case Title</h3>
+              <button
+                onClick={cancelTitleModal}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <textarea
+                className="w-full h-32 p-4 bg-slate-900/60 border border-blue-400/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/80 focus:border-blue-400/80 transition-all duration-200 text-sm font-mono leading-relaxed resize-none"
+                placeholder="Enter test case title..."
+                value={modalTitleValue}
+                onChange={e => setModalTitleValue(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Description Edit Modal */}
+      {showDescriptionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-purple-400/30">
+            <div className="flex items-center justify-between p-6 border-b border-slate-600">
+              <h3 className="text-xl font-bold text-white">Edit Test Case Description</h3>
+              <button
+                onClick={cancelDescriptionModal}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <textarea
+                className="w-full h-96 p-4 bg-slate-900/60 border border-purple-400/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400/80 focus:border-purple-400/80 transition-all duration-200 text-sm font-mono leading-relaxed resize-none"
+                placeholder="Enter test case description..."
+                value={modalDescriptionValue}
+                onChange={e => setModalDescriptionValue(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preconditions Edit Modal */}
+      {showPreconditionsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-green-400/30">
+            <div className="flex items-center justify-between p-6 border-b border-slate-600">
+              <h3 className="text-xl font-bold text-white">Edit Preconditions</h3>
+              <button
+                onClick={cancelPreconditionsModal}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <textarea
+                className="w-full h-64 p-4 bg-slate-900/60 border border-green-400/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-400/80 focus:border-green-400/80 transition-all duration-200 text-sm font-mono leading-relaxed resize-none"
+                placeholder="Enter preconditions..."
+                value={modalPreconditionsValue}
+                onChange={e => setModalPreconditionsValue(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Postconditions Edit Modal */}
+      {showPostconditionsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-yellow-400/30">
+            <div className="flex items-center justify-between p-6 border-b border-slate-600">
+              <h3 className="text-xl font-bold text-white">Edit Postconditions</h3>
+              <button
+                onClick={cancelPostconditionsModal}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <textarea
+                className="w-full h-64 p-4 bg-slate-900/60 border border-yellow-400/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/80 focus:border-yellow-400/80 transition-all duration-200 text-sm font-mono leading-relaxed resize-none"
+                placeholder="Enter postconditions..."
+                value={modalPostconditionsValue}
+                onChange={e => setModalPostconditionsValue(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Test Steps Edit Modal */}
+      {showTestStepsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-cyan-400/30">
+            <div className="flex items-center justify-between p-6 border-b border-slate-600">
+              <h3 className="text-xl font-bold text-white">Edit Test Steps</h3>
+              <button
+                onClick={cancelTestStepsModal}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <textarea
+                className="w-full h-96 p-4 bg-slate-900/60 border border-cyan-400/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 focus:border-cyan-400/80 transition-all duration-200 text-sm font-mono leading-relaxed resize-none"
+                placeholder="Enter test steps..."
+                value={modalTestStepsValue}
+                onChange={e => setModalTestStepsValue(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

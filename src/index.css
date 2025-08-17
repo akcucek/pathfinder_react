@@ -10,12 +10,6 @@
 .animate-fade-out {
   animation: fadeOut 0.3s ease-out forwards;
 }
-
-/* Enhanced Upload Suc.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out;
-  animation-fill-mode: both;
-}
-
 .animate-bounce-in {
   animation: bounceIn 0.8s ease-out;
 }
@@ -107,7 +101,7 @@
   100% {
     background-position: 200% 0;
   }
-}ilure Animations */
+}
 @keyframes uploadSuccess {
   0% {
     transform: scale(0.8) rotate(-5deg);

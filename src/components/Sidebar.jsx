@@ -64,17 +64,17 @@ const sidebarSections = [
         badge: null
       },
       {
-        label: 'MCP Prompt',
+  label: 'Prompt Gallery',
         icon: FaRocket,
         path: '/mcp-prompt',
-        description: 'Model Context Protocol prompt interface',
+  description: 'Prompt Gallery interface',
         badge: null
       },
       {
-        label: 'MCP Data Source',
+        label: 'Data Source',
         icon: FaServer,
         path: '/mcp-data-source',
-        description: 'Manage MCP server data sources',
+        description: 'Manage server data sources',
         badge: null
       }
     ]

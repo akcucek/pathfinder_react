@@ -233,7 +233,7 @@ const UploadRecording = () => {
           <header className="bg-slate-900/70 backdrop-blur-md border border-slate-600/50 rounded-xl p-6 mb-8 shadow-2xl hover:bg-slate-900/80 hover:shadow-blue-500/10 transition-all duration-300 group">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2 font-mono bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-purple-300 transition-all duration-300">Upload Recordings or Documents to Support Your Requirements</h1>
+                <h1 className="text-3xl font-bold text-white mb-2 font-mono bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-purple-300 transition-all duration-300">Upload Recordings and Documents</h1>
                 <p className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
                   {formatDate(currentTime)} • {formatTime(currentTime)}
                 </p>
@@ -263,7 +263,7 @@ const UploadRecording = () => {
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-purple-300 transition-all duration-300">Upload Your Files</h2>
                 <p className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
-                  Upload meeting recordings, audio files, or videos for analysis and processing
+                  Generate User Stories from Meeting Recordings, Requirement Documents, and More
                 </p>
               </div>
               

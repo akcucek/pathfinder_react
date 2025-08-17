@@ -3,6 +3,32 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
+  const [domain, setDomain] = useState("");
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!identifier.trim() || !password.trim()) {
+      setError('Please enter both email/username and password.');
+      return;
+    }
+    if (isLocked) return;
+    const result = await login(identifier, password, rememberMe);
+    if (result.success) {
+      navigate(from, { replace: true });
+    } else {
+      // Failed login
+      const newAttempts = loginAttempts + 1;
+      setLoginAttempts(newAttempts);
+      setError(result.error);
+      // Lock account after 3 failed attempts
+      if (newAttempts >= 3) {
+        setIsLocked(true);
+        setLockTimeRemaining(300); // 5 minutes lockout
+        setError('Too many failed attempts. Account locked for 5 minutes.');
+      }
+    }
+  };
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -73,75 +99,10 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(from, { replace: true });
+      // ...existing code...
     }
-  }, [isAuthenticated, navigate, from]);
-
-  // Load remembered user
-  useEffect(() => {
-    const rememberedUser = localStorage.getItem('rememberUser');
-    if (rememberedUser) {
-      setIdentifier(rememberedUser);
-      setRememberMe(true);
-    }
-  }, []);
-
-  // Account lockout timer
-  useEffect(() => {
-    if (isLocked && lockTimeRemaining > 0) {
-      const timer = setInterval(() => {
-        setLockTimeRemaining(prev => {
-          if (prev <= 1) {
-            setIsLocked(false);
-            setLoginAttempts(0);
-            setError('');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  }, [isLocked, lockTimeRemaining]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    // Check if account is locked
-    if (isLocked) {
-      setError(`Account locked. Try again in ${lockTimeRemaining} seconds.`);
-      return;
-    }
-
-    // Basic validation
-    if (!identifier.trim() || !password.trim()) {
-      setError('Please enter both email/username and password.');
-      return;
-    }
-
-    // Attempt login
-    const result = await login(identifier, password, rememberMe);
-
-    if (result.success) {
-      // Successful login - redirect to the page user was trying to access, or welcome by default
-      createParticles(window.innerWidth / 2, window.innerHeight / 2, 15);
-      navigate(from, { replace: true });
-    } else {
-      // Failed login
-      const newAttempts = loginAttempts + 1;
-      setLoginAttempts(newAttempts);
-      setError(result.error);
-
-      // Lock account after 3 failed attempts
-      if (newAttempts >= 3) {
-        setIsLocked(true);
-        setLockTimeRemaining(300); // 5 minutes lockout
-        setError('Too many failed attempts. Account locked for 5 minutes.');
-      }
-    }
-  };
+  }, [isAuthenticated]);
+// ...existing code...
 
   const handleSSOLogin = async () => {
     setError('');
@@ -244,26 +205,6 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Domain selection row */}
-            <div className="mt-6">
-              <label className="block text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h8" />
-                </svg>
-                Domain
-              </label>
-              <select
-                className="w-full px-4 py-3 bg-slate-800/60 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm text-base font-medium"
-                defaultValue="healthcare"
-                required
-              >
-                <option value="healthcare">Healthcare</option>
-                <option value="travel">Travel</option>
-                <option value="banking">Banking</option>
-              </select>
-            </div>
-
             {/* Password */}
             <div className="relative group">
               <label className="block text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
@@ -299,6 +240,28 @@ const Login = () => {
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               </div>
             </div>
+
+            {/* Domain selection row */}
+            <div className="mt-6">
+              <label className="block text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h8" />
+                </svg>
+                Domain
+              </label>
+              <select
+                className="w-full px-4 py-3 bg-slate-800/60 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm text-base font-medium"
+                value={domain}
+                onChange={e => setDomain(e.target.value)}
+                required
+              >
+                <option value="" disabled>Select Domain</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="travel">Travel</option>
+                <option value="banking">Banking</option>
+              </select>
+            </div>
           </div>
 
           {/* Interactive Sign In Button with 3D effects */}
@@ -324,6 +287,5 @@ const Login = () => {
       </main>
     </div>
   );
-};
-
+}
 export default Login;

@@ -15,9 +15,37 @@ import {
 } from 'react-icons/fa';
 
 export default function GenerateUserStories() {
+  // Bulk reject selected user stories
+  const handleRejectSelected = async () => {
+    const selected = userStories.filter(s => s.checked && !s.rejected && !s.approved);
+    if (selected.length === 0) return;
+    try {
+      for (const story of selected) {
+        await apiService.updateUserStory({ ...story, rejected: true });
+      }
+      setUserStories(stories =>
+        stories.map(s =>
+          s.checked ? { ...s, rejected: true, checked: false } : s
+        )
+      );
+      alert('Selected user stories rejected!');
+    } catch (error) {
+      alert('Failed to reject selected user stories.');
+    }
+  };
   const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
   const [modalAcceptanceValue, setModalAcceptanceValue] = useState('');
   const [modalStoryId, setModalStoryId] = useState(null);
+  
+  // New modal states for Title, Description, and Acceptance Criteria
+  const [showTitleModal, setShowTitleModal] = useState(false);
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  const [showAcceptanceEditModal, setShowAcceptanceEditModal] = useState(false);
+  const [modalTitleValue, setModalTitleValue] = useState('');
+  const [modalDescriptionValue, setModalDescriptionValue] = useState('');
+  const [modalAcceptanceEditValue, setModalAcceptanceEditValue] = useState('');
+  const [currentEditingStoryId, setCurrentEditingStoryId] = useState(null);
+  
   const [activeMenu, setActiveMenu] = useState('Generate User Stories');
   const [userStories, setUserStories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -222,6 +250,97 @@ export default function GenerateUserStories() {
     setEditingValues({});
   };
 
+  // Modal functions for Title, Description, and Acceptance Criteria
+  const openTitleModal = (story) => {
+    setModalTitleValue(story.userStory);
+    setCurrentEditingStoryId(story.id);
+    setShowTitleModal(true);
+  };
+
+  const openDescriptionModal = (story) => {
+    setModalDescriptionValue(story.useCases);
+    setCurrentEditingStoryId(story.id);
+    setShowDescriptionModal(true);
+  };
+
+  const openAcceptanceEditModal = (story) => {
+    setModalAcceptanceEditValue(story.acceptanceCriteria);
+    setCurrentEditingStoryId(story.id);
+    setShowAcceptanceEditModal(true);
+  };
+
+  const saveTitleModal = async () => {
+    try {
+      const storyToUpdate = userStories.find(s => s.id === currentEditingStoryId);
+      const updatedStory = { ...storyToUpdate, title: modalTitleValue };
+      await apiService.updateUserStory(updatedStory);
+      
+      setUserStories(stories => 
+        stories.map(story => 
+          story.id === currentEditingStoryId ? { ...story, userStory: modalTitleValue } : story
+        )
+      );
+      setShowTitleModal(false);
+      setCurrentEditingStoryId(null);
+    } catch (error) {
+      alert('Failed to update title');
+    }
+  };
+
+  const saveDescriptionModal = async () => {
+    try {
+      const storyToUpdate = userStories.find(s => s.id === currentEditingStoryId);
+      const updatedStory = { ...storyToUpdate, description: modalDescriptionValue };
+      await apiService.updateUserStory(updatedStory);
+      
+      setUserStories(stories => 
+        stories.map(story => 
+          story.id === currentEditingStoryId ? { ...story, useCases: modalDescriptionValue } : story
+        )
+      );
+      setShowDescriptionModal(false);
+      setCurrentEditingStoryId(null);
+    } catch (error) {
+      alert('Failed to update description');
+    }
+  };
+
+  const saveAcceptanceEditModal = async () => {
+    try {
+      const storyToUpdate = userStories.find(s => s.id === currentEditingStoryId);
+      const updatedStory = { ...storyToUpdate, acceptance_criteria: modalAcceptanceEditValue };
+      await apiService.updateUserStory(updatedStory);
+      
+      setUserStories(stories => 
+        stories.map(story => 
+          story.id === currentEditingStoryId ? { ...story, acceptanceCriteria: modalAcceptanceEditValue } : story
+        )
+      );
+      setShowAcceptanceEditModal(false);
+      setCurrentEditingStoryId(null);
+    } catch (error) {
+      alert('Failed to update acceptance criteria');
+    }
+  };
+
+  const cancelTitleModal = () => {
+    setShowTitleModal(false);
+    setCurrentEditingStoryId(null);
+    setModalTitleValue('');
+  };
+
+  const cancelDescriptionModal = () => {
+    setShowDescriptionModal(false);
+    setCurrentEditingStoryId(null);
+    setModalDescriptionValue('');
+  };
+
+  const cancelAcceptanceEditModal = () => {
+    setShowAcceptanceEditModal(false);
+    setCurrentEditingStoryId(null);
+    setModalAcceptanceEditValue('');
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user story?')) {
       try {
@@ -355,7 +474,7 @@ export default function GenerateUserStories() {
                 <FaFileAlt className="text-purple-400 text-3xl group-hover:text-purple-300 group-hover:scale-110 transition-all duration-300" />
                 <div>
                   <h1 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent group-hover:from-purple-300 group-hover:to-blue-300 transition-all duration-300">
-                    User Stories Review
+                    Review User Stories
                   </h1>
                   <p className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
                     Review, edit, and approve generated user stories
@@ -364,13 +483,22 @@ export default function GenerateUserStories() {
               </div>
               <div className="flex gap-3">
                 <button
-                  className={`px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-green-300/30 ${userStories.filter(s => s.checked && !s.approved).length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-green-300/30 ${userStories.filter(s => s.checked && !s.approved && !s.rejected).length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                   onClick={handleApproveSelected}
-                  disabled={userStories.filter(s => s.checked && !s.approved).length === 0}
+                  disabled={userStories.filter(s => s.checked && !s.approved && !s.rejected).length === 0}
                   title="Approve selected user stories"
                 >
                   <FaCheckCircle className="text-white" />
                   Approve
+                </button>
+                <button
+                  className={`px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-red-300/30 ${userStories.filter(s => s.checked && !s.rejected && !s.approved).length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={handleRejectSelected}
+                  disabled={userStories.filter(s => s.checked && !s.rejected && !s.approved).length === 0}
+                  title="Reject selected user stories"
+                >
+                  <FaTimes className="text-white" />
+                  Reject
                 </button>
               </div>
             </div>
@@ -383,6 +511,7 @@ export default function GenerateUserStories() {
               <table className="w-full">
                 <thead className="bg-slate-700/50 border-b border-slate-600/50">
                   <tr>
+                    <th className="px-4 py-4 text-center text-sm font-medium text-slate-300">Select</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Title</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Description</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-slate-300">Acceptance Criteria</th>
@@ -392,39 +521,36 @@ export default function GenerateUserStories() {
                 </thead>
                 <tbody className="divide-y divide-slate-600/30">
                   {userStories.map((story) => (
-                    <tr key={story.id} className={`hover:bg-slate-700/20 transition-colors ${story.approved ? 'bg-green-900/10 border-l-4 border-green-500' : ''}`}>
+                    <tr key={story.id} className={`hover:bg-slate-700/20 transition-colors ${story.approved ? 'bg-green-900/10 border-l-4 border-green-500' : ''} ${story.rejected ? 'bg-red-900/10 border-l-4 border-red-500' : ''}`}>
+                      <td className="px-4 py-4 text-center">
+                        <input type="checkbox" checked={story.checked} onChange={() => handleCheckboxChange(story.id)} disabled={story.approved || story.rejected} />
+                      </td>
                       <td className="px-6 py-4 text-center">
-                        {story.isEditing ? (
-                          <textarea
-                            value={editingValues.userStory || ''}
-                            onChange={(e) => handleInputChange('userStory', e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-white text-sm resize-vertical min-h-[80px] text-center"
-                          />
-                        ) : (
-                          <p className="text-slate-200 text-sm leading-relaxed text-center">{story.userStory}</p>
-                        )}
+                        <div 
+                          className="text-slate-200 text-sm leading-relaxed text-center cursor-pointer hover:bg-slate-700/20 rounded p-2 transition-colors"
+                          onClick={() => openTitleModal(story)}
+                          title="Click to edit title"
+                        >
+                          {story.userStory}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        {story.isEditing ? (
-                          <textarea
-                            value={editingValues.useCases || ''}
-                            onChange={(e) => handleInputChange('useCases', e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-white text-sm resize-vertical min-h-[80px]"
-                          />
-                        ) : (
-                          <p className="text-slate-200 text-sm leading-relaxed">{story.useCases}</p>
-                        )}
+                        <div 
+                          className="text-slate-200 text-sm leading-relaxed cursor-pointer hover:bg-slate-700/20 rounded p-2 transition-colors"
+                          onClick={() => openDescriptionModal(story)}
+                          title="Click to edit description"
+                        >
+                          {story.useCases}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        {story.isEditing ? (
-                          <textarea
-                            value={editingValues.acceptanceCriteria || ''}
-                            onChange={(e) => handleInputChange('acceptanceCriteria', e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-white text-sm resize-vertical min-h-[80px]"
-                          />
-                        ) : (
-                          <p className="text-slate-200 text-sm leading-relaxed">{story.acceptanceCriteria}</p>
-                        )}
+                        <div 
+                          className="text-slate-200 text-sm leading-relaxed cursor-pointer hover:bg-slate-700/20 rounded p-2 transition-colors"
+                          onClick={() => openAcceptanceEditModal(story)}
+                          title="Click to edit acceptance criteria"
+                        >
+                          {story.acceptanceCriteria}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <p className="text-slate-200 text-sm leading-relaxed">
@@ -550,6 +676,87 @@ export default function GenerateUserStories() {
         </div>
       </main>
       </div>
+
+      {/* Title Edit Modal */}
+      {showTitleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-blue-400/30">
+            <div className="flex items-center justify-between p-6 border-b border-slate-600">
+              <h3 className="text-xl font-bold text-white">Edit User Story Title</h3>
+              <button
+                onClick={cancelTitleModal}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <textarea
+                className="w-full h-32 p-4 bg-slate-900/60 border border-blue-400/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/80 focus:border-blue-400/80 transition-all duration-200 text-sm font-mono leading-relaxed resize-none"
+                placeholder="Enter your user story title..."
+                value={modalTitleValue}
+                onChange={e => setModalTitleValue(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Description Edit Modal */}
+      {showDescriptionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-purple-400/30">
+            <div className="flex items-center justify-between p-6 border-b border-slate-600">
+              <h3 className="text-xl font-bold text-white">Edit User Story Description</h3>
+              <button
+                onClick={cancelDescriptionModal}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <textarea
+                className="w-full h-96 p-4 bg-slate-900/60 border border-purple-400/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400/80 focus:border-purple-400/80 transition-all duration-200 text-sm font-mono leading-relaxed resize-none"
+                placeholder="Enter your user story description..."
+                value={modalDescriptionValue}
+                onChange={e => setModalDescriptionValue(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Acceptance Criteria Edit Modal */}
+      {showAcceptanceEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-green-400/30">
+            <div className="flex items-center justify-between p-6 border-b border-slate-600">
+              <h3 className="text-xl font-bold text-white">Edit Acceptance Criteria</h3>
+              <button
+                onClick={cancelAcceptanceEditModal}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <textarea
+                className="w-full h-96 p-4 bg-slate-900/60 border border-green-400/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-400/80 focus:border-green-400/80 transition-all duration-200 text-sm font-mono leading-relaxed resize-none"
+                placeholder="Enter your acceptance criteria..."
+                value={modalAcceptanceEditValue}
+                onChange={e => setModalAcceptanceEditValue(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

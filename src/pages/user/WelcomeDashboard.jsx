@@ -28,11 +28,11 @@ const WelcomeDashboard = () => {
     const baseActions = [
       { title: 'Upload Recordings', icon: FaCloud, path: '/upload-media', color: 'blue' },
       { title: 'User Stories', icon: FaFileAlt, path: '/generate-user-stories', color: 'green' },
-      { title: 'MCP Prompt', icon: FaRocket, path: '/mcp-prompt', color: 'purple' },
-      { title: 'MCP Data Source', icon: FaServer, path: '/mcp-data-source', color: 'indigo' }
+  { title: 'Prompt Gallery', icon: FaRocket, path: '/mcp-prompt', color: 'purple' },
+      { title: 'Data Source', icon: FaServer, path: '/mcp-data-source', color: 'indigo' }
     ];
 
-    // Always show MCP Prompt for all roles
+  // Always show Prompt Gallery for all roles
     if (user?.role === 'admin') {
       return [
         ...baseActions,
@@ -67,7 +67,7 @@ const WelcomeDashboard = () => {
         'report': '/generate-rca-report',
         'admin': '/admin',
         'dashboard': '/dashboard',
-        'mcp prompt': '/mcp-prompt',
+  'prompt gallery': '/mcp-prompt',
         'prompt': '/mcp-prompt',
         'mcp': '/mcp-prompt',
         'mcp data source': '/mcp-data-source',
@@ -282,7 +282,7 @@ const WelcomeDashboard = () => {
                   <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-600">
                     <p className="text-blue-300 font-medium">🌐 Current Deployment: http://localhost:5178/welcome</p>
                     <p className="text-green-300 font-medium mt-2">📁 Project Structure: React + Vite Frontend, External Python API, Modular Pages</p>
-                    <p className="text-purple-300 font-medium mt-2">🔧 Features: Horizontal Sidebar, Full-width Containers, Professional Dark Theme, Quick Actions, MCP Prompt & Data Source, Editable Data Source Management</p>
+                    <p className="text-purple-300 font-medium mt-2">🔧 Features: Horizontal Sidebar, Full-width Containers, Professional Dark Theme, Quick Actions, Prompt Gallery & Data Source, Editable Data Source Management</p>
                   </div>
                 </section>
 
@@ -302,7 +302,7 @@ const WelcomeDashboard = () => {
                         <li>• Professional Dark Theme</li>
                         <li>• Responsive Full-width Containers</li>
                         <li>• Quick Actions Dashboard</li>
-                        <li>• MCP Prompt: Dual Editable Containers (User Story & Test Plan)</li>
+                        <li>• Prompt Gallery: Dual Editable Containers (User Story & Test Plan)</li>
                         <li>• MCP Data Source: Select, Edit, and Save Data Sources</li>
                       </ul>
                     </div>
@@ -352,7 +352,7 @@ const WelcomeDashboard = () => {
                       </div>
                       <div className="bg-purple-900/20 p-3 rounded-lg border border-purple-500/30">
                         <h4 className="font-semibold text-purple-300">🎨 Advanced UI/UX</h4>
-                        <p className="text-sm text-slate-400">Horizontal sidebar, glass morphism, dark theme, full-width containers, Quick Actions, MCP Prompt & Data Source, Data Source Management</p>
+                        <p className="text-sm text-slate-400">Horizontal sidebar, glass morphism, dark theme, full-width containers, Quick Actions, Prompt Gallery & Data Source, Data Source Management</p>
                       </div>
                     </div>
                     <div className="space-y-3">

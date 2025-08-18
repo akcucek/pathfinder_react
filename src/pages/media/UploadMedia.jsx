@@ -97,25 +97,12 @@ const UploadMedia = ({
 
       let result;
       
-      // Choose upload endpoint based on type
-      if (uploadType === 'agent') {
-        console.log('🚀 Calling agentUploadFiles with:');
-        console.log('  - fileObj:', fileObj);
-        console.log('  - fileObj.file:', fileObj.file);
-        console.log('  - userEmail:', userEmail);
-        console.log('  - additionalData:', additionalData);
-        
-        result = await apiService.agentUploadFiles(
-          fileObj.file, 
-          userEmail, 
-          additionalData
-        );
-      } else {
-        result = await apiService.uploadFiles(fileObj.file, {
-          user: userEmail,
-          ...additionalData
-        });
-      }
+
+      result = await apiService.uploadFiles(fileObj.file, {
+        user: userEmail,
+        ...additionalData
+      });
+      
       
       setProcessing(prev => ({ ...prev, [fileId]: false }));
       

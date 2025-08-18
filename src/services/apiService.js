@@ -127,7 +127,7 @@ class ApiService {
       formData.append(key, additionalData[key]);
     });
 
-    return this.request('/agent/upload_files', {
+    return this.request('/api/upload_files', {
       method: 'POST',
       body: formData
     });

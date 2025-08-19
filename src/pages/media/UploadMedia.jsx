@@ -67,82 +67,73 @@ const UploadMedia = ({
     }));
     
     setFiles(prev => [...prev, ...newFiles]);
-    
-    // Upload each file
-    for (const fileObj of newFiles) {
-      await uploadFile(fileObj);
-    }
-    
+
+    // Batch upload all files together
+    await uploadFilesBatch(newFiles);
+
     if (onUpload && selectedFiles.length > 0) onUpload(selectedFiles);
   };
 
-  const uploadFile = async (fileObj) => {
-    const fileId = fileObj.id;
-    setProcessing(prev => ({ ...prev, [fileId]: true }));
-    
-    // Update base URL for API service
-    apiService.updateBaseURL(baseURL);
-    
-    // Update file status
-    setFiles(prev => prev.map(f => 
-      f.id === fileId ? { ...f, status: 'uploading' } : f
+  // Batch upload function
+  const uploadFilesBatch = async (fileObjs) => {
+    if (!fileObjs || fileObjs.length === 0) return;
+    // Set all files to uploading
+    setFiles(prev => prev.map(f =>
+      fileObjs.some(nf => nf.id === f.id) ? { ...f, status: 'uploading' } : f
     ));
-    
+    fileObjs.forEach(fileObj => {
+      setProcessing(prev => ({ ...prev, [fileObj.id]: true }));
+    });
+
+    apiService.updateBaseURL(baseURL);
+
     try {
-      // Only validate file size on frontend - backend handles all type validation
       const maxSize = 200 * 1024 * 1024; // 200MB
-      if (fileObj.file.size > maxSize) {
-        throw new Error(`File too large. Maximum size: ${maxSize / (1024 * 1024)}MB`);
+      for (const fileObj of fileObjs) {
+        if (fileObj.file.size > maxSize) {
+          throw new Error(`File too large. Maximum size: ${maxSize / (1024 * 1024)}MB`);
+        }
       }
-
-      let result;
-      
-
-      result = await apiService.uploadFiles(fileObj.file, {
-        user: userEmail,
-        ...additionalData
+      // Prepare FormData for batch upload
+      const formData = new FormData();
+      fileObjs.forEach((fileObj) => {
+        formData.append('files', fileObj.file);
       });
-      
-      
-      setProcessing(prev => ({ ...prev, [fileId]: false }));
-      
-      // Update file status to completed (no transcription needed)
-      setFiles(prev => prev.map(f => 
-        f.id === fileId ? { ...f, status: 'completed', result: result } : f
-      ));
-      
-      // Show success notification
-      showNotification('success', `✅ ${fileObj.name} uploaded successfully! Check your email for confirmation.`);
-      
-      // Add a small delay to show the completed state before calling success
-      setTimeout(() => {
-        if (onSuccess) onSuccess(result);
-      }, 500);
+      formData.append('user', userEmail);
+      Object.entries(additionalData).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
 
+      // Call API once for all files
+      const result = await apiService.uploadFiles(formData);
+
+      fileObjs.forEach(fileObj => {
+        setProcessing(prev => ({ ...prev, [fileObj.id]: false }));
+        setFiles(prev => prev.map(f =>
+          f.id === fileObj.id ? { ...f, status: 'completed', result: result } : f
+        ));
+        showNotification('success', `✅ ${fileObj.name} uploaded successfully! Check your email for confirmation.`);
+        setTimeout(() => {
+          if (onSuccess) onSuccess(result);
+        }, 500);
+      });
     } catch (error) {
-      // Upload error handling
-      setProcessing(prev => ({ ...prev, [fileId]: false }));
-      
-      // Update file status to error
-      let errorMessage = 'Upload failed. Please try again.';
-      
-      if (error.message.includes('Cannot connect to server')) {
-        errorMessage = `Cannot connect to server at ${baseURL}. Please ensure the service is running.`;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setFiles(prev => prev.map(f => 
-        f.id === fileId ? { ...f, status: 'error', error: errorMessage } : f
-      ));
-      
-      // Show error notification
-      showNotification('error', `❌ ${fileObj.name} upload failed: ${errorMessage}`);
-      
-      // Call onError callback if provided
-      if (onError) {
-        onError(errorMessage, fileObj.name);
-      }
+      fileObjs.forEach(fileObj => {
+        setProcessing(prev => ({ ...prev, [fileObj.id]: false }));
+        let errorMessage = 'Upload failed. Please try again.';
+        if (error.message.includes('Cannot connect to server')) {
+          errorMessage = `Cannot connect to server at ${baseURL}. Please ensure the service is running.`;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        setFiles(prev => prev.map(f =>
+          f.id === fileObj.id ? { ...f, status: 'error', error: errorMessage } : f
+        ));
+        showNotification('error', `❌ ${fileObj.name} upload failed: ${errorMessage}`);
+        if (onError) {
+          onError(errorMessage, fileObj.name);
+        }
+      });
     }
   };
 
@@ -169,14 +160,9 @@ const UploadMedia = ({
         size: file.size,
         status: 'pending'
       }));
-      
       setFiles(prev => [...prev, ...newFiles]);
-      
-      // Upload each file
-      for (const fileObj of newFiles) {
-        await uploadFile(fileObj);
-      }
-      
+      // Batch upload all files together
+      await uploadFilesBatch(newFiles);
       if (onUpload) onUpload(droppedFiles);
     }
   };

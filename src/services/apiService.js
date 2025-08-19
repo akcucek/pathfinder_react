@@ -114,19 +114,11 @@ class ApiService {
 
   /**
    * POST /upload_files - Standard upload files
-   * @param {File} file - File to upload
-   * @param {Object} additionalData - Additional form data
+   * @param {FormData} formData - FormData object containing files and additional data
    * @returns {Promise} Upload response
    */
-  async uploadFiles(file, additionalData = {}) {
-    const formData = new FormData();
-    formData.append('files', file); // Changed from 'file' to 'files' to match server expectation
-    
-    // Add any additional form data
-    Object.keys(additionalData).forEach(key => {
-      formData.append(key, additionalData[key]);
-    });
-
+  async uploadFiles(formData) {
+    // FormData is already prepared with files and additional data
     return this.request('/api/upload_files', {
       method: 'POST',
       body: formData
